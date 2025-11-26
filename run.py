@@ -40,6 +40,7 @@ def get_parser():
     return opt
 
 if __name__=='__main__':
+    start_time = datetime.datetime.now()
     gc.collect()
     project_dir = os.getcwd()
     os.chdir(project_dir)
@@ -76,9 +77,10 @@ if __name__=='__main__':
     #start = 0
     timeSequence = str(datetime.datetime.now())[20:26]
     x,y,x_imputate,x_train,y_train,x_test,y_test,y_actual,start = preprocess.dataSplit(orig,timeSequence,opt,cols_orig)
+    #-----------------------Predict with daily refreshed data, e.g.: predict 30 or 100 days consecutively based on Day_t-1 data---------------------
     y_predict, y_actual = predict.FL_train_nn(x_train,y_train,x_test,y_test,y_actual,x_imputate,cols_orig,timeSequence,start,opt)
-    #y_actual,y_predict = FL_train_gan(x_train,y_train,x_test,y_test,y_actual)
-    #y_actual,y_predict = FL_train_predict_window(x,y,x_train,y_train,x_test,y_test,y_actual,start)
+    #-----------------------Predict in a time window: e.g.: predict 30 days or 100 days based on Day_0 data----------------------
+    #y_predict, y_actual = predict.FL_train_predict_window(x_train,y_train,x_test,y_test,y_actual,x_imputate,cols_orig,timeSequence,start,opt)
     y_predict_fl = utils.fl_convertion(y_predict).reshape(-1,1)
     y_actual_fl = utils.fl_convertion(y_actual).reshape(-1,1)
     print('original data is: ')
@@ -91,4 +93,10 @@ if __name__=='__main__':
     fig = eval.visualize.visualize(y_actual_fl,y_predict_fl,timeSequence,start,cols_orig,opt)   
     df_result = eval.visualize.output(y_actual_fl,y_predict_fl,timeSequence,start,opt)   
     #df_result = output(y_actual_fl,y_predict_fl)
+    
+    end_time = datetime.datetime.now()
+    print("start time is {}, and end time is {}".format(str(start_time),str(end_time)))
+    with open('time.log','a') as f:
+        f.write(str([start_time,end_time, end_time-start_time]))
+        f.close()
 
